@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: configmap-to-http
+  labels:
+    app: configmap-to-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: configmap-to-http
+  template:
+    metadata:
+      labels:
+        app: configmap-to-http
+    spec:
+      containers:
+      - name: configmap-to-http
+        image: quay.io/vqcomms/configmap-to-http:latest
+        ports:
+        - containerPort: 8090
+        env:
+          - name: CONFIGMAP_NAME
+            value: vq-customer-config
