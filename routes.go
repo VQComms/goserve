@@ -46,17 +46,17 @@ func readyz(isReady *atomic.Value) http.HandlerFunc {
 }
 
 func serveConfig(w http.ResponseWriter, req *http.Request) {
-	cm, err := FetchConfigMap(os.Getenv("CONFIGMAP_NAME"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	cm := GetConfigMap()
+
+	if cm == nil {
+		http.NotFound(w, req)
+		return
 	}
 
 	json, err := json.Marshal(cm.Data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(json)
 }
