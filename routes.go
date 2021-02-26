@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -69,5 +70,5 @@ func serveConfig(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(cm.Data[jsonFileName]))
+	io.WriteString(w, cm.Data[jsonFileName])
 }
