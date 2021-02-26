@@ -58,9 +58,8 @@ func getClientSet() *kubernetes.Clientset {
 
 			storedClientset = clientset
 			return clientset
-		} else {
-			log.Printf("No local kube config found, using InClusterConfig")
 		}
+		log.Printf("No local kube config found, using InClusterConfig")
 	}
 
 	config, err := rest.InClusterConfig()
