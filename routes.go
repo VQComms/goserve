@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -64,10 +63,11 @@ func serveConfig(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	json, err := json.Marshal(cm.Data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	jsonFileName := os.Getenv("JSON_FILENAME")
+	if jsonFileName == "" {
+		jsonFileName = "config.json"
 	}
+
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(json)
+	w.Write([]byte(cm.Data[jsonFileName]))
 }
