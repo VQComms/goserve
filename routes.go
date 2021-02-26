@@ -30,9 +30,14 @@ func Router() *mux.Router {
 	log.Printf("Serving configmap from /" + jsonFileName)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/" + jsonFileName, serveConfig).Methods("GET")
+	r.HandleFunc("/"+jsonFileName, serveConfig).Methods("GET")
 	r.HandleFunc("/healthz", healthz)
 	r.HandleFunc("/readyz", readyz(isReady))
+	// Serve index page on all unhandled routes
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/index.html")
+	})
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 	return r
 }
 

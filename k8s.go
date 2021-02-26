@@ -26,27 +26,41 @@ var storedConfigMap *v1.ConfigMap
 var namespace string
 var configmapName string
 
+func exists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}
+
 func getClientSet() *kubernetes.Clientset {
 	if storedClientset != nil {
 		return storedClientset
 	}
 
 	if home := homedir.HomeDir(); home != "" {
-		kubeconfig := flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-		// use the current context in kubeconfig
-		config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
-		if err != nil {
-			panic(err.Error())
-		}
+		path := filepath.Join(home, ".kube", "config")
+		if exists(path) {
+			kubeconfig := flag.String("kubeconfig", path, "(optional) absolute path to the kubeconfig file")
+			// use the current context in kubeconfig
+			config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+			if err != nil {
+				panic(err.Error())
+			}
 
-		// create the clientset
-		clientset, err := kubernetes.NewForConfig(config)
-		if err != nil {
-			panic(err.Error())
-		}
+			// create the clientset
+			clientset, err := kubernetes.NewForConfig(config)
+			if err != nil {
+				panic(err.Error())
+			}
 
-		storedClientset = clientset
-		return clientset
+			storedClientset = clientset
+			return clientset
+		} else {
+			log.Printf("No local kube config found, using InClusterConfig")
+		}
 	}
 
 	config, err := rest.InClusterConfig()
@@ -105,7 +119,7 @@ func onAdd(obj interface{}) {
 	configmap := obj.(*v1.ConfigMap)
 
 	if configmap.GetNamespace() == namespace && configmap.GetName() == configmapName {
-		log.Printf("Configmap [%s] Namespace [%s] Updated", configmapName, namespace)
+		log.Printf("Configmap [%s] Namespace [%s] Added", configmapName, namespace)
 		storeConfigMap(configmap)
 	}
 }
@@ -113,7 +127,7 @@ func onAdd(obj interface{}) {
 func onUpdate(objOld interface{}, objNew interface{}) {
 	configmap := objNew.(*v1.ConfigMap)
 
-	if configmap.GetNamespace() == namespace && configmap.GetName() == configmapName {
+	if configmap.GetNamespace() == namespace && configmap.GetName() == configmapName && configmap != storedConfigMap {
 		log.Printf("Configmap [%s] Namespace [%s] Updated", configmapName, namespace)
 		storeConfigMap(configmap)
 	}

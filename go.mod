@@ -1,4 +1,4 @@
-module vqcomms.com/configmap-to-http/v2
+module vqcomms.com/goServe/v2
 
 go 1.15
 

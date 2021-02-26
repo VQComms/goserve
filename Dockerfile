@@ -1,6 +1,6 @@
-FROM golang:alpine as builder
+FROM golang:latest as builder
 
-WORKDIR $GOPATH/src/mypackage/myapp/
+WORKDIR /go/src/vqcomms/goServe/
 
 # use modules
 COPY go.mod .
@@ -12,10 +12,18 @@ RUN go mod verify
 COPY . .
 
 # Build the binary
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -a -installsuffix cgo -o /go/bin/configmap-to-http .
+RUN mkdir ./bin && \
+    CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -tags netgo -installsuffix netgo -o ./bin/goServe && \
+    mkdir ./bin/etc && \
+    ID=$(shuf -i 100-9999 -n 1) && \
+    echo $ID && \
+    echo "appuser:x:$ID:$ID::/sbin/nologin:/bin/false" > ./bin/etc/passwd && \
+    echo "appgroup:x:$ID:appuser" > ./bin/etc/group
 
 FROM scratch
 
-COPY --from=builder /go/bin/configmap-to-http /go/bin/configmap-to-http
+WORKDIR /
 
-ENTRYPOINT ["/go/bin/configmap-to-http"]
+COPY --from=builder /go/src/vqcomms/goServe/bin .
+
+ENTRYPOINT ["/goServe"]

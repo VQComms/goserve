@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: goserve
+  labels:
+    app: goserve
+spec:
+  selector:
+    app: goserve
+  type: NodePort
+  ports:
+  - name: http
+    port: 8090
+    targetPort: 8090
+    
