@@ -1,5 +1,7 @@
 # goServe
 
+[![Docker Repository on Quay](https://quay.io/repository/vqcomms/goserve/status "Docker Repository on Quay")](https://quay.io/repository/vqcomms/goserve)
+
 A simple golang application to serve up a configmap in the same namespace as json as well as static files.
 
 ## Static files folder
