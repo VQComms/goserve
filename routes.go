@@ -23,8 +23,14 @@ func Router() *mux.Router {
 		log.Printf("Application is ready")
 	}()
 
+	jsonFileName := os.Getenv("JSON_FILENAME")
+	if jsonFileName == "" {
+		jsonFileName = "config.json"
+	}
+	log.Printf("Serving configmap from /" + jsonFileName)
+
 	r := mux.NewRouter()
-	r.HandleFunc("/config.json", serveConfig).Methods("GET")
+	r.HandleFunc("/" + jsonFileName, serveConfig).Methods("GET")
 	r.HandleFunc("/healthz", healthz)
 	r.HandleFunc("/readyz", readyz(isReady))
 	return r
