@@ -2,7 +2,11 @@
 
 [![Docker Repository on Quay](https://quay.io/repository/vqcomms/goserve/status "Docker Repository on Quay")](https://quay.io/repository/vqcomms/goserve)
 
-A simple golang application to serve up a configmap in the same namespace as json as well as static files.
+A simple golang application to serve up a configmap as well as static files.
+
+The `data` values in the configmap are served up on the `JSON_FILENAME` path.
+
+The `binaryData` values in the configmap are served up on the paths defined in the key. For example `foo__bar__test.png` will be served from `/foo/bar/test.png`. It will also override any static file in the static folder at that location.
 
 ## Static files folder
 

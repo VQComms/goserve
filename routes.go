@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 	"sync/atomic"
 
 	"github.com/gorilla/mux"
@@ -37,6 +39,7 @@ func Router() *mux.Router {
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./static/index.html")
 	})
+	r.PathPrefix("/").HandlerFunc(serveConfigFile).Methods("GET")
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 	return r
 }
@@ -71,4 +74,25 @@ func serveConfig(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	io.WriteString(w, cm.Data[jsonFileName])
+}
+
+func serveConfigFile(w http.ResponseWriter, r *http.Request) {
+	cm := GetConfigMap()
+
+	if cm == nil {
+		http.ServeFile(w, r, "./static"+r.URL.Path)
+		return
+	}
+
+	path := strings.TrimPrefix(r.URL.Path, "/")
+	underscoredURLPath := strings.ReplaceAll(path, "/", "__")
+
+	binaryData, exists := cm.BinaryData[underscoredURLPath]
+
+	if !exists {
+		http.ServeFile(w, r, filepath.Join("./static", r.URL.Path))
+		return
+	}
+
+	w.Write(binaryData)
 }
