@@ -4,8 +4,11 @@ import (
 	"errors"
 	"io"
 	"log"
+	"mime"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 	"sync/atomic"
 
 	"github.com/gorilla/mux"
@@ -23,21 +26,12 @@ func Router() *mux.Router {
 		log.Printf("Application is ready")
 	}()
 
-	jsonFileName := os.Getenv("JSON_FILENAME")
-	if jsonFileName == "" {
-		jsonFileName = "config.json"
-	}
-	log.Printf("Serving configmap from /" + jsonFileName)
-
 	r := mux.NewRouter()
-	r.HandleFunc("/"+jsonFileName, serveConfig).Methods("GET")
-	r.HandleFunc("/healthz", healthz)
-	r.HandleFunc("/readyz", readyz(isReady))
+	r.HandleFunc("/healthz", healthz).Methods("GET")
+	r.HandleFunc("/readyz", readyz(isReady)).Methods("GET")
 	// Serve index page on all unhandled routes
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./static/index.html")
-	})
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
+	r.HandleFunc("/", handleIndexRedirect).Methods("GET")
+	r.PathPrefix("/").HandlerFunc(serveFiles).Methods("GET")
 	return r
 }
 
@@ -56,19 +50,36 @@ func readyz(isReady *atomic.Value) http.HandlerFunc {
 	}
 }
 
-func serveConfig(w http.ResponseWriter, req *http.Request) {
+func handleIndexRedirect(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./static/index.html")
+}
+
+func serveFiles(w http.ResponseWriter, r *http.Request) {
 	cm := GetConfigMap()
 
 	if cm == nil {
-		http.NotFound(w, req)
+		http.ServeFile(w, r, filepath.Join("./static", r.URL.Path))
 		return
 	}
 
-	jsonFileName := os.Getenv("JSON_FILENAME")
-	if jsonFileName == "" {
-		jsonFileName = "config.json"
+	path := strings.TrimPrefix(r.URL.Path, "/")
+	underscoredURLPath := strings.ReplaceAll(path, "/", "__")
+
+	data, exists := cm.Data[underscoredURLPath]
+
+	w.Header().Set("Content-Type", mime.TypeByExtension(filepath.Ext(underscoredURLPath)))
+
+	if exists {
+		io.WriteString(w, data)
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	io.WriteString(w, cm.Data[jsonFileName])
+	binaryData, exists := cm.BinaryData[underscoredURLPath]
+
+	if exists {
+		w.Write(binaryData)
+		return
+	}
+
+	http.ServeFile(w, r, filepath.Join("./static", r.URL.Path))
 }
