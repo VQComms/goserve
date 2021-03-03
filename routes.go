@@ -32,6 +32,7 @@ func Router() *mux.Router {
 	// Serve index page on all unhandled routes
 	r.HandleFunc("/", handleIndexRedirect).Methods("GET")
 	r.PathPrefix("/").HandlerFunc(serveFiles).Methods("GET")
+
 	return r
 }
 
