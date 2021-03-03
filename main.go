@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/handlers"
 )
 
 func main() {
@@ -22,6 +24,7 @@ func main() {
 
 	log.Print("Starting the service...")
 	router := Router()
+	loggedRouter := handlers.LoggingHandler(os.Stdout, router)
 	log.Printf("Listening on port %s", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	log.Fatal(http.ListenAndServe(":"+port, loggedRouter))
 }
