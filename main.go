@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -16,11 +15,11 @@ func main() {
 	}
 
 	cm, exists := os.LookupEnv("CONFIGMAP_NAME")
-	if !exists {
-		panic(errors.New("Please provide the CONFIGMAP_NAME environment variable"))
+	if exists {
+		go InitializeInformer(cm)
+	} else {
+		log.Print("No CONFIGMAP_NAME environment variable, so skipping k8s functionality!")
 	}
-
-	go InitializeInformer(cm)
 
 	log.Print("Starting the service...")
 	router := Router()

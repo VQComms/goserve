@@ -23,8 +23,11 @@ Mount static files into the docker container at `/static`.
 We will also serve `/` to `index.html` with a 301 redirect.
 
 ## Environment variables
+
+When `CONFIGMAP_NAME` is not specified, no k8s functionality is enabled and goServe is a basic static file server.
+
 ```
-- CONFIGMAP_NAME [Required]
+- CONFIGMAP_NAME [Optional]
   <The name of the configmap to pull data from in the same namespace as the pod>
 
 - POD_NAMESPACE [Optional]
