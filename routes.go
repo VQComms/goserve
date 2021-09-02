@@ -39,6 +39,11 @@ func serveFiles(w http.ResponseWriter, r *http.Request) {
 	cm := GetConfigMap()
 
 	if cm == nil {
+		// Disable directory listing
+		if strings.HasSuffix(r.URL.Path, "/") {
+			http.NotFound(w, r)
+			return
+		}
 		http.ServeFile(w, r, filepath.Join("./static", r.URL.Path))
 		return
 	}
