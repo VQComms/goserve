@@ -7,7 +7,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	k8s.io/api v0.23.4
 	k8s.io/apimachinery v0.23.4
-	k8s.io/client-go v0.23.3
+	k8s.io/client-go v0.23.4
 )
 
 require (
