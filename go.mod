@@ -1,6 +1,6 @@
 module vqcomms.com/goServe/v2
 
-go 1.17
+go 1.23
 
 require (
 	github.com/gorilla/handlers v1.5.1
